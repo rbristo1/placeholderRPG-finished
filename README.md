@@ -16,23 +16,23 @@ Afterwards you will need to input a name for you character, type it in and press
 After this you will be placed on the map as a red p, use wasd to move around the map.
 There will be various letters on the map, moving into them will do the following things:  
 
-<w> = upgrades the character's weapon  
+w = upgrades the character's weapon  
 
-<c> = a chest with a permanent upgrade scroll  
+c = a chest with a permanent upgrade scroll  
 
-<s> = a skill scroll for your character to learn a new attack  
+s = a skill scroll for your character to learn a new attack  
 
-<k> = a key to open the locks in the main room with  
+k = a key to open the locks in the main room with  
 
-<L> = a lock preventing access to the next floor of the dungeon  
+L = a lock preventing access to the next floor of the dungeon  
 
 <+> = stairs to the next floor
 
 <#> = doorway to another room (flush with the walls)  
 
-<S> = the powerful scroll of seg fault   
+S = the powerful scroll of seg fault   
 
-<D> = Xylograth, the Being of Digerence  
+D = Xylograth, the Being of Digerence  
 
 
 Be careful while navigating the map, as enemies will try to ambush you, choose your paths wisely!
