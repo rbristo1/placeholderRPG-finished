@@ -1,0 +1,17 @@
+-1 Invalid_Weapon -1
+00 Club 4
+01 Mace 5
+02 Maul 6
+03 Warhammer 8
+04 Dagger 3
+05 Shortsword 4
+06 Longsword 6
+07 Greatsword 8
+08 Shortbow 3
+09 Crowssbow 5
+10 Longbow 6
+11 Composite_Bow 8
+12 Wand 2
+13 Amulet 4
+14 Spellbook 6
+15 Staff 8

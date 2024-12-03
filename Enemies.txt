@@ -1,0 +1,14 @@
+00 Slime               10 5  5  2  3  3  17 17 17 18 0
+01 Shambling_Shrub     8  6  4  2  3  6  20 20 20 20 0
+02 Goblin_Warrior      11 6  4  2  2  4  19 19 19 21 0
+03 Goblin_Shaman       9  2  3  5  5  6  22 22 13 13 0
+04 Spider              13 7  5  2  6  6  19 19 19 23 0
+05 Treant              16 8  6  5  5  2  24 24 25 26 1
+06 Skeleton_Warrior    15 8  4  2  2  5  19 27 27 5  0
+07 Skeleton_Wizard     15 2  2  8  4  5  13 13 14 14 0
+08 Zombie              16 5  8  2  8  3  17 24 24 28 0
+09 Cultist_Mage        15 3  5  9  8  7  14 14 15 29 0
+10 Lich                20 5  5  10 10 8  13 14 15 16 1
+11 Cultist_Warrior     20 10 10 6  5  6  27 27 27 29 0
+12 Cultist_Abomination 25 9  7  9  7  6  23 27 29 29 0
+13 Xylograth,_Being_of_Digerence 30 7 7 7 7 7 29 30 30 31 1

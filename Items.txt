@@ -1,0 +1,14 @@
+-1 Invalid_Item -1
+0 HP__Potion 0
+1 ATK_Potion 1
+2 DEF_Potion 2
+3 MGA_Potion 3
+4 MGD_Potion 4
+5 HP__Scroll 5
+6 ATK_Scroll 6
+7 DEF_Scroll 7
+8 MGA_Scroll 8
+9 MGD_Scroll 9
+10 SPD_Scroll 10
+11 Skill_Scroll 11
+12 Scroll_of_Seg_Fault 12
