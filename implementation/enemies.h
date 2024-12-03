@@ -6,7 +6,7 @@
 using namespace std;
 class enemyVector {
     public:
-        static const vector<vector<string> > enemies;
+        static const vector<vector<string> > enemies; // holds enemies ASCII art
     private:
 };
 #endif

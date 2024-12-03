@@ -16,7 +16,7 @@
 
 
 using namespace std;
-
+//vectors containing the title screen, game over screen, and game win screen.
 
 vector<string> title = {"\x1B[96m__________.__                      .__           .__       .___            \033[0m",
                         "\x1B[96m\\______   \\  | _____    ____  ____ |  |__   ____ |  |    __| _/___________ \033[0m", 
@@ -43,6 +43,8 @@ vector<string> gameWin = {
 
 
 };
+
+//holds the text displayed at the very beginning and end of the game
 vector <string> IntroText = {
     "1,000 years ago, the dark Kingdom of Liked Lists ruled the land.",
     "Monsters slaughtered entire villages, spirits made the inhabitants go insane, and a dark blight killed off all of the crops.",
@@ -64,19 +66,29 @@ vector<string> WinText = {
 };
 
 int main() {
+    //used to output things to the screen
     screenManip sm;
+
+    //finds terminal window size based on linux environment variables
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws); 
+
+    //terminal length and width
     int lines = ws.ws_row;
     int columns = ws.ws_col;
+
+    //if terminal is too small for the game to be displayed, it outputs an error message to the user and quits
     if (lines < 52 || columns < 146) {
         cerr << "Terminal size not large enough to display game, please fullscreen or zoom out of the terminal before restarting." << endl;
         return 1;
     }
+
+    //title screen music helpers
     mini sounds;
     bool stop = false;
     string test = "Title.wav";
-    //thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
+
+    //initializes screen vector (50 tall, 144 wide) with main menu text
     vector<string> screen;
     int max = 50;
     screen.resize(max);
@@ -89,77 +101,101 @@ int main() {
     screen.at(33) = "                                                                   Quit                                                                         ";
 
 
-
-    sm.printScreen(&screen);
-
+    //forbidden stack overflow knowledge:
+    //https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
+    //allows for a character input to be read without needing to press the newline key
     static struct termios oldt, newt;
 
-    /*tcgetattr gets the parameters of the current terminal
-    STDIN_FILENO will tell tcgetattr that it should write the settings
-    of stdin to oldt*/
+    //gets parameters of the current terminal
     tcgetattr( STDIN_FILENO, &oldt);
-    /*now the settings will be copied*/
+    //copies them to new terminal
     newt = oldt;
 
-    /*ICANON normally takes care that one line at a time will be processed
-    that means it will return if it sees a "\n" or an EOF or an EOL*/
+    //ICANON normally takes care that one line at a time, so it is inverted
     newt.c_lflag &= ~(ICANON);          
 
-    /*Those new settings will be set to STDIN
-    TCSANOW tells tcsetattr to change attributes immediately. */
+    //new settings are sent to STDIN and attributes are changed immediately
     tcsetattr( STDIN_FILENO, TCSANOW, &newt);
-
-    /*This is your part:
-    I choose 'e' to end input. Notice that EOF is also turned off
-    in the non-canonical mode*/
+    
     char lastInput = 'w';
-    //thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
+
+    //checks if music needs to be restarted
     int loop = 0;
-    //thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
+
+    //global music thread
     thread music2;
     do{
         if (loop == 0) {
+
+            //starts the Title music, .data() converts string to char *
             thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
+
+            //swaps local thread with global thread so it can be join()ed later.
             swap(music, music2);
         }
+
+        //prints the finished title screen
         sm.printScreen(&screen);
         double microsecond = 1000000;
-        usleep(0.03125 * microsecond);//sleeps for 3 second
+
+        //delays user input by 1/32 of a second
+        usleep(0.03125 * microsecond);
+
+        //recieves user char input without newline key
         char input = getchar();
 
+        //move title screen selector down
         if (input == 's') {
             screen[30][65] = ' ';
             screen[33][65] = '>';
             sm.printScreen(&screen);
             lastInput = 's';
         }
+        //move up
         else if (input == 'w') {
             screen[30][65] = '>';
             screen[33][65] = ' ';
             sm.printScreen(&screen);
             lastInput = 'w';
         }
+        //select option
         else if (input == '\n') {
+            //quit
             if (lastInput == 's') {
                 stop = true;
                 music2.join();
-                //usleep(0.03125 * microsecond);
                 break;
             }
+            //start game
             else {
+
+                //map initialize
                 mapMovements mm;
+
+                //clears screen for opening text scroll
                 sm.clearScreen(&screen);
+
+                //prints opening text scroll
                 for (int i = 0; i<IntroText.size(); i++) {
                     sm.printCenterFirstAvail(&screen, i+10, IntroText[i]);
                 }
                 sm.printScreen(&screen);
+
+                //wait for user input to move on
                 char garbage = getchar();
+
+                //title music stops, game starts
                 stop = true;
                 int i = mm.gameStart(&screen);
+
+                //makes sure music has fully stopped, then sets the loop to 0 so it can restart if the player died
                 music2.join();
                 stop = false;
                 loop = 0;
+
+                //1 indicates a game win
                 if (i == 1) {
+                    //prints win text scroll, then game win screen, then quits
                     sm.clearScreen(&screen);
                     for (int j = 0; j<WinText.size(); j++) {
                         sm.printCenterFirstAvail(&screen, j+10, WinText[j]);
@@ -173,8 +209,9 @@ int main() {
                         sm.printCenterFirstAvail(&screen, j+10, gameWin[j]);
                     }
                     sm.printScreen(&screen);
-                    return 0;
+                    break;
                 }
+                //prints game over screen
                 screen.resize(0);
                 screen.resize(50);
                 sm.clearScreen(&screen);
@@ -183,9 +220,10 @@ int main() {
                 }
                 sm.printScreen(&screen);
                 //thread music2(&mini::playMenuTheme, &sounds, &stop, test.data());
-                return 0;
+                break;
             }
         }
+        //sets loop to 1 so music doesnt start twice
         if (loop==0) {
             loop=1;
         }
@@ -193,8 +231,8 @@ int main() {
 
 
     } while (true);
-    //printLoop.join();
-    /*restore the old settings*/
+
+    //restores old settings before quitting
     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
     
     

@@ -7,29 +7,35 @@
 using namespace std;
 void mini::playMenuTheme(bool * stop, char * filename)
 {
+    //plays a sound file and fades out when it is stopped
     ma_result result;
     ma_engine engine;
     ma_sound sound;
 
+    //sets fade in
     ma_sound_set_fade_in_milliseconds(&sound, 0, 1, 1000);
 
     result = ma_engine_init(NULL, &engine);
+    //makes sure the initialization was successful
     if (result != MA_SUCCESS) {
         return;
     }
-    //ma_engine_play_sound(&engine, filename, NULL);
+    //initializes a ma_sound from a file
     result = ma_sound_init_from_file(&engine, filename, 0, NULL, NULL, &sound);
+    //starts the sound
     ma_sound_start(&sound);
+    //tells it to loop
     ma_sound_set_looping(&sound, true);
-    //ma_sound_set_fade_in_milliseconds(&sound, -1, 0, 1000);
 
-    //double microsecond = 1000000;
-    //sleep_until(system_clock::now() + seconds(300));
     while (true) {
         if (*stop == true) {
+            //sets fade out
             ma_sound_set_fade_in_milliseconds(&sound, -1, 0, 1000);
+            //wait 1 sec
             usleep(1 * 1000000);
+            //uinitialize
             ma_engine_uninit(&engine);
+            //quit
             return;
         }
     }
@@ -39,50 +45,7 @@ void mini::playMenuTheme(bool * stop, char * filename)
 }
 void mini::playBossTheme(bool * stop, char * filename, char * filename2)
 {
-
-   /* ma_result result;
-    ma_engine engine;
-    ma_sound sound;
-
-    result = ma_engine_init(NULL, &engine);
-    if (result != MA_SUCCESS) {
-        return;
-    }
-    //ma_engine_play_sound(&engine, filename, NULL);
-    result = ma_sound_init_from_file(&engine, filename, 0, NULL, NULL, &sound);
-    ma_sound_start(&sound);
-    //ma_sound_set_fade_in_milliseconds(&sound, -1, 0, 1000);
-
-    //double microsecond = 1000000;
-    //sleep_until(system_clock::now() + seconds(300));
-    while (!ma_sound_at_end(&sound)) {
-        if (*stop == true) {
-            ma_sound_set_fade_in_milliseconds(&sound, -1, 0, 1000);
-            usleep(1 * 1000000);
-            ma_engine_uninit(&engine);
-            return;
-        }
-    }
-    ma_result result2;
-    ma_engine engine2;
-    ma_sound sound2;
-    result2 = ma_sound_init_from_file(&engine, filename2, 0, NULL, NULL, &sound2);
-    ma_sound_start(&sound2);
-    ma_sound_set_looping(&sound2, true);
-    while (true) {
-        if (*stop == true) {
-            ma_sound_set_fade_in_milliseconds(&sound2, -1, 0, 1000);
-            usleep(1 * 1000000);
-            ma_engine_uninit(&engine);
-            ma_engine_uninit(&engine2);
-            return;
-        }
-    }
-
-
-    ma_engine_uninit(&engine);
-    ma_engine_uninit(&engine2);
-    return;*/
+    //plays the boss into and then the boss main loop
     mini sounds;
     bool stop2;
     thread music2(&mini::playMenuTheme, &sounds, &stop2, filename);

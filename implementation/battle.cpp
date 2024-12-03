@@ -8,7 +8,6 @@
 #include "AndrewsFiles/Character.h"
 #include "AndrewsFiles/Enemy.h"
 #include "AndrewsFiles/Player.h"
-#include "AndrewsFiles/Game.h"
 #include "AndrewsFiles/Action.h"
 #include <cctype>
 #include "../miniAudioSounds.h"
@@ -61,18 +60,17 @@ vector<string> battleSubMenuInterface {
     "              option1                             option2                           > option3                             option4               ",
     "              option1                             option2                             option3                           > option4               "
 };
-
+//finds if the enemy or player has died
 bool battle::BattleOver(Player *player, Enemy *enemy){
     if (player->isDead()) {
-        //cout << player->getName() << " loses!" << endl;
         return true;
     } else if (enemy->isDead()) {
-        //cout << player->getName() << " wins!" << endl;
         return true;
     
     }
     return false;
 }
+//calculates an attack's damage against an enemy
 int battle::damageCalc(int attackerATK, int targetDEF, int power) {
     float first = ((float)attackerATK / (float)targetDEF);
 
@@ -84,8 +82,11 @@ int battle::damageCalc(int attackerATK, int targetDEF, int power) {
 
 }
 
+//attacks
 int battle::attack(Character *attacker, Character *target, Action attack, bool * proc) {
+    //checks if the status effect applied
     (*proc) = false;
+
     int attackerATK;
     int targetDEF;
     int damage = 0;
@@ -93,6 +94,7 @@ int battle::attack(Character *attacker, Character *target, Action attack, bool *
     int effectID = attack.getStatus();
     float modifier = attack.getModifier();
     string attackName = attack.getName();
+    
     if (attack.isMagic()) {
         attackerATK = attacker->getStat(3); // Get MGA
         targetDEF = target->getStat(4); // Get MGD
@@ -128,7 +130,7 @@ int battle::attack(Character *attacker, Character *target, Action attack, bool *
 }
 
 string battle::flee(Player *player, Enemy *enemy, bool &fled) {
-    int fleeChance = min(100, max(0, (player->getStat(5) / enemy->getStat(5)) * 50)); // Min an Max make sure that minimum flee chance is 0%, and max flee chance is 100%
+    int fleeChance = min(100, max(0, (player->getStat(5) / enemy->getStat(5)) * 50)); // Min and Max make sure that minimum flee chance is 0%, and max flee chance is 100%
     int chance = rand() % 100;
     if (chance < fleeChance) {
         fled = true;
@@ -214,10 +216,13 @@ int battle::battleStart(int enemyNumber, Player * player) {
     bool paralyzed;
     Action playerMove;
     Action enemyMove;
+
+    //creates the enemy
     Enemy enemy(enemyNumber);
-    //Game mainGame(0);
+
     (void) playerMove;
-    
+
+    //sees who goes first
     if (player->getStat(5) >= enemy.getStat(5)){
         playerTurn = 0;
     } else {
@@ -233,6 +238,8 @@ int battle::battleStart(int enemyNumber, Player * player) {
     mapMovements mm;
     battle bt;
     sm.clearScreen(&screen2);
+
+    //prints battle screen
     bt.loadBattleInterface(&screen2, 0, enemyNumber, &enemy, player);
     bt.buildBattleInterface(player);
     string initInput = "A ";
@@ -253,8 +260,9 @@ int battle::battleStart(int enemyNumber, Player * player) {
     thread music2;
     int loop = 0;
     bool stop = false;
+    
     do{
-        
+        //plays the correct music for the fight
         if (loop == 0) {
             if (enemy.isBoss() == false) {
                 stop = true;
@@ -280,32 +288,32 @@ int battle::battleStart(int enemyNumber, Player * player) {
             loop = 1;
         }
         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
+        //determines the current turn
         if(turnCount % 2 == playerTurn) {
             currentTurn = 'p'; // It is currently the player's turn
         } else {
             currentTurn = 'e'; // It is currently the enemy's turn
         }
         if (currentTurn == 'p') {
-
+            
+            //stops defending
             if (player->isDefending()) {
                 player->stopDefending();
             }
 
+            //activates paralysis if it has been applied
             player->activateStatus(paralyzed);
             death = BattleOver(player, &enemy);
             bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
             
             if (paralyzed != true) {
-                //cout << "What would you like to do?" << endl << "1. Attack" << endl << "2. Defend" << endl;
-                //cin >> playerAction;
                 do {
                     double microsecond = 1000000;
                     usleep(0.03125 * microsecond);//sleeps for 3 second
                     char input = getchar();
-                    //input = getchar();
     
                     
-
+                    //used to select between attack, defend, item, and flee
                     if (input == 'd' && lastInput != 3 && submenu == 0) {
                         lastInput++;
                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
@@ -316,6 +324,8 @@ int battle::battleStart(int enemyNumber, Player * player) {
                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
                         
                     }
+
+                    //selects between attacks
                     else if (input == 'd' && lastInput2 != 3 && submenu == 1 && lastInput2 < player->numLearned) {
                         lastInput2++;
                         bt.printBattleText(&screen2, battleSubMenuInterface[lastInput2]);
@@ -335,6 +345,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                     //0 = attack state, 1 = defend state, 2 = item state, 3 = flee state
                     else if (input == '\n' && submenu == 0) {
                         if (lastInput == 0) {
+                            //prints attacks
                             bt.printBattleText(&screen2, battleSubMenuInterface[0]);
                             sm.printScreen(&screen2);
                             submenu = 1;
@@ -342,6 +353,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             continue;
                         }
                         else if (lastInput == 1) {
+                            //defends
                             player->defend();
                             lastInput = 0;
                             lastInput2 = 0;
@@ -351,12 +363,10 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             bt.printBattleText(&screen2, temp);
                             sm.printScreen(&screen2);
                             usleep(2*microsecond);
-                            /*bt.printBattleText(&screen2, battleSubMenuInterface[0]);
-                            sm.printScreen(&screen2);
-                            submenu = 1;*/
 
                             break;
                         }
+                        //prints inventory and allows player to use items in battle
                         else if (lastInput == 2) {
                             lastInput = 0;
                             lastInput2 = 0;
@@ -421,6 +431,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             char input2;
                             string temp2;
                             while (true) {
+                                //same item selection as mapMovements
                                 input2 = getchar();
                                 if (input2 == 'q') {
                                     bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
@@ -453,7 +464,6 @@ int battle::battleStart(int enemyNumber, Player * player) {
                                     if (temp != "") {
                                         printBattleText(&screen2, temp);
                                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
-                                        //usleep(2*microsecond);
                                     }
                                     
                                     break;
@@ -485,7 +495,6 @@ int battle::battleStart(int enemyNumber, Player * player) {
                                     if (temp != "") {
                                         printBattleText(&screen2, temp);
                                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);;
-                                        //usleep(2*microsecond);
                                     }
                                     break;
                                 }
@@ -516,7 +525,6 @@ int battle::battleStart(int enemyNumber, Player * player) {
                                     if (temp != "") {
                                         printBattleText(&screen2, temp);
                                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
-                                        //usleep(2*microsecond);
                                     }
                                     break;
                                 }
@@ -547,7 +555,6 @@ int battle::battleStart(int enemyNumber, Player * player) {
                                     if (temp != "") {
                                         printBattleText(&screen2, temp);
                                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
-                                        //usleep(2*microsecond);
                                     }
                                     break;
                                 }
@@ -566,18 +573,13 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             
 
                         
-                            /*bt.printBattleText(&screen2, battleSubMenuInterface[0]);
-                            sm.printScreen(&screen2);
-                            submenu = 1;*/
                         }
+                        //attempt to flee
                         else {
                             lastInput = 0;
                             lastInput2 = 0;
                             submenu = 0;
                             bool fled = false;
-                            /*bt.printBattleText(&screen2, battleSubMenuInterface[0]);
-                            sm.printScreen(&screen2);
-                            submenu = 1;*/
                             printBattleText(&screen2, flee(player, &enemy, fled));
                             sm.printScreen(&screen2);
                             usleep(2*microsecond);
@@ -588,15 +590,17 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             
                         }
                     }
+                    //attacks with selected attack
                     else if (input == '\n' && submenu == 1) {
                         bool proc;
-                        //attack(player, &enemy, player->getAction(lastInput2));
+
                         string temp = player->getName();
                         temp += " attacked with ";
                         temp += player->getAction(lastInput2).getName();
                         temp += ", dealing ";
                         int HPbefore = player->getHP();
 
+                        //attacks and prints resulting damage and status effects applied
                         temp += to_string(attack(player, &enemy, player->getAction(lastInput2), &proc));
                         int HPafter = player->getHP();
                         temp += " damage";
@@ -654,6 +658,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                         printBattleText(&screen2, temp);
                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
                         usleep(2*microsecond);
+                        //returns to base state
                         lastInput = 0;
                         lastInput2 = 0;
                         submenu = 0;
@@ -666,17 +671,19 @@ int battle::battleStart(int enemyNumber, Player * player) {
             paralyzed = false;
         }
         if (currentTurn == 'e') {
-            //cout << enemy->getName() << "'s turn!" << endl << endl;
+            //attempts to fix a rare bug where the player gets hit when the enemy defends
             int previousHP = player->getHP();
 
             if (enemy.isDefending()) {
                 enemy.stopDefending();
             }
 
+            //paralyzes enemy if needed
             enemy.activateStatus(paralyzed);
             death = BattleOver(player, &enemy);
 
             if (paralyzed != true) {
+                //decides enemy attack randomly
                 enemyAction = rand() % 4;
                 if(enemyAction != 0) {
                     bool proc;
@@ -753,6 +760,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
 
                 }
             }
+            //if enemy is paralyzed
             else {
                 string temp = enemy.getName();
                 temp += " is paralyzed!";
@@ -762,19 +770,17 @@ int battle::battleStart(int enemyNumber, Player * player) {
             paralyzed = false;
             
         }
-        cout << "test";
         death = BattleOver(player, &enemy);
-        cout << "test";
 
 
 
         
-        cout << "test";
         turnCount++;
         
         
 
     } while (!death);
+    //end of battle
     string temp;
     if (player->isDead()) {
         temp = player->getName();
@@ -782,6 +788,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
     else {
         temp = enemy.getName();
     }
+    //prints who got killed
     player -> resetStatus();
     player->resetTempStats();
     temp += " has been slain!";
@@ -789,6 +796,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
     bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
 
     usleep(2*1000000);
+    //gives the player an item if they survived
     if (!player->isDead()) {
         temp = player->gainRandomPotion();
 
@@ -805,13 +813,14 @@ int battle::battleStart(int enemyNumber, Player * player) {
     }
     
 
-
+    //stops the music and returns to the main game
     loop = 1;
     stop = true;
     music2.join();
 
     return 0;
 }
+//prints text in the text box in the battle interface (max: 144 chars)
 void battle::printBattleText(vector<string> * screen, string text) {
     screen -> at(38) = "";
     for (int i = 0; i < (144-text.size())/2; i++) {
@@ -829,13 +838,10 @@ void battle::printBattleText(vector<string> * screen, string text) {
         }
     }
 }
+//builds the player's attack options into a vector
 void battle::buildBattleInterface(Player * player) {
     for (int i = 0; i<4; i++) {
         battleSubMenuInterface[i] = "";
-        /*for (int j = 0; j < (34-player->getAction(0).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
-
-        }*/
         if (i == 0) {
             battleSubMenuInterface[i] += "> ";
         }
@@ -947,10 +953,6 @@ void battle::buildBattleInterface(Player * player) {
         else {
 
         }
-        /*for (int j = 0; j < (36-player->getAction(3).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
-
-        }*/
         
 
     }

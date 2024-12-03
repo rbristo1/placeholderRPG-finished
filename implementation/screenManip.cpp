@@ -22,6 +22,7 @@ void screenManip::printScreen(vector<string> * screen) {
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws); 
     int lines = ws.ws_row;
     int columns = ws.ws_col;
+    //initalizes screen to have width 144(+2 for the borders)
     int l_offset = (columns - (48*3+2))/2;
     string emptySpace;
     string ret;
@@ -64,6 +65,7 @@ void screenManip::printScreen2(vector<string> * screen) {
     printf ("columns %d\n", ws.ws_col);
     cout << ret;
 
+    //replaces temp wall characters with the intended ones
     cout << emptySpace << "┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐" << endl;
     for (int i = 0; i < screen -> size(); i++) {
         cout << emptySpace << "│";
@@ -115,10 +117,13 @@ void screenManip::printScreen2(vector<string> * screen) {
 }
 void screenManip::printCenterFirstAvail(vector<string> * screen, int firstLine, string text) {
     screen -> at(firstLine) = "";
+    //put spaces on the left side
     for (int i = 0; i < (144-text.size())/2; i++) {
         screen->at(firstLine) += " ";
     }
+    //inserts text
     screen->at(firstLine) += text;
+    //inserts right spaces, +1 if the text had an odd length
     if (text.size() % 2 == 0) {
         for (int i = 0; i < (144-text.size())/2; i++) {
             screen->at(firstLine) += " ";

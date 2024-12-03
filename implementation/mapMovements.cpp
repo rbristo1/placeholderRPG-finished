@@ -6,7 +6,6 @@
 #include "AndrewsFiles/Character.h"
 #include "AndrewsFiles/Enemy.h"
 #include "AndrewsFiles/Player.h"
-#include "AndrewsFiles/Game.h"
 #include "AndrewsFiles/Action.h"
 #include "../miniAudioSounds.h"
 #include <thread>
@@ -1047,7 +1046,10 @@ vector<vector<string>> mapMovements::maps =
         {14,-1,16,-1},
         {15, -1, -1, -1}
     };
+
+    //text that displays when entering a floor
     vector<string> Floor1Text = {
+
         "You find yourself deep in the forest, far off the path. ",
         "The tall, thick trees form a dense canopy up ahead, casting a dark shadow over the forest floor where you reside. ",
         "As you continue, you hear the chirping of birds get farther away. ",
@@ -1076,17 +1078,14 @@ vector<vector<string>> mapMovements::maps =
         "[Press any key to continue]"
     };
     
-    int keysCollected = 0;
-    int keysUsed = 0;
-    vector<int> wallChars = {'h', 'v', 'e', 'o', 'g', 'q', 'z', 'c', 'w', 'S', 's', '#', '+', 'k', 'L'};
 
-    bool isWall(int c) {
-        return std::find(wallChars.begin(), wallChars.end(), c) != wallChars.end();
-    }
     
 
 vector<string> mapMovements::mapText(vector<string> * screen, string temp) {
+    //copies screen vector
     vector<string> itemGet = (*screen);
+
+    //overwrites the bottom of the copied screen to display the inputted text
     itemGet[40] = "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
     for (int i = 41; i<50; i++) {
         itemGet[i] = "                                                                                                                                                ";
@@ -1106,18 +1105,22 @@ vector<string> mapMovements::mapText(vector<string> * screen, string temp) {
             itemGet[45] += " ";
         }
     }
+    //returns finished copied vector
     return itemGet;
+
 }
 
 int mapMovements::gameStart(vector<string> * screen) {
+    //initializes starting stats
+    keysCollected = 0;
+    keysUsed = 0;
     mini sounds;
     screenManip sm;
     battle bt;
-    Action attack(0);
-    Game mainGame(0);
-    //Enemy enemy(0);
     int choice;
     string playerName;
+
+    //class selection screen
     vector<string> classSelect = maps[0];
     classSelect[10] = "                                                               Choose Your Class!                                                               ";
     classSelect[11] = "                                                                  1. Barbarian                                                                  ";
@@ -1133,6 +1136,7 @@ int mapMovements::gameStart(vector<string> * screen) {
         }
     }
 
+    //character name entry
     classSelect = maps[0];
     classSelect[10] = "                                                          Type Your Character's Name:                                                           ";
     sm.printScreen2(&classSelect);
@@ -1140,6 +1144,7 @@ int mapMovements::gameStart(vector<string> * screen) {
     Player player(playerName, choice - 1);
     player.print();
 
+    //print first floor text scroll
     vector<string> screen3;
     screen3.resize(50);
     sm.clearScreen(&screen3);
@@ -1151,42 +1156,37 @@ int mapMovements::gameStart(vector<string> * screen) {
     char garbage2 = getchar();
     sm.printScreen2(screen);
 
-    //mainGame.Battle(&player, &slime);
+    //loads first map
     int currentMap = 1;
     screen = &maps[currentMap];
-    /*for (int i = 0; i < screen->size(); i++) {
-        cout << i;
-        screen -> at(i) = maps[0][i];
-    }*/
     sm.printScreen2(screen);
     int playerx = 71;
     int playery = 40;
     int loop = 0;
+
     string floor1 = "Dungeon1.wav";
     string floor2 = "Dungeon2.wav";
     string floor3 = "Dungeon3.wav";
     thread music2;
     int floor = 1;
     do{
+        //loads music based on floor
         bool stop = false;
         if (loop == 0) {
             if (floor == 1) {
                 stop = true;
-                //music2.join();
                 stop = false;
                 thread music(&mini::playMenuTheme, &sounds, &stop, floor1.data());
                 swap(music, music2);
             }
             if (floor == 2) {
                 stop = true;
-                //music2.join();
                 stop = false;
                 thread music(&mini::playMenuTheme, &sounds, &stop, floor2.data());
                 swap(music, music2);
             }
             if (floor == 3) {
                 stop = true;
-                //music2.join();
                 stop = false;
                 thread music(&mini::playMenuTheme, &sounds, &stop, floor3.data());
                 swap(music, music2);
@@ -1194,16 +1194,21 @@ int mapMovements::gameStart(vector<string> * screen) {
             loop = 1;
         }
         double microsecond = 1000000;
-        usleep(0.03125 * microsecond);//sleeps for 3 second
+        usleep(0.03125 * microsecond);//sleeps for 1/32 second
 
         char input = getchar();
-
+        //player right movement
         if (input == 'd' && playerx != 143) {
+            //saves old line
             string tempString = screen->at(playery);
+            //replaces old position with empty space
             screen->at(playery).replace(playerx, 1, " ");
 
+            //if the player is moving into empty space
             if (screen->at(playery)[playerx+1] == ' ') {
+
                 for (size_t i = 0; i < xcolliders[currentMap].size(); i++) {
+                    //check if an invisible enemy is there
                     if (activeColliders[currentMap][i] == 1 && abs(playery - ycolliders[currentMap][i]) <= ycollidersWidth[currentMap][i] && abs(playerx+1 - xcolliders[currentMap][i]) <= xcollidersWidth[currentMap][i]) {
                         stop = true;
                         music2.join();
@@ -1215,25 +1220,38 @@ int mapMovements::gameStart(vector<string> * screen) {
                         }
                     }
                 }
+
+                //places player in new position and increments up coordinate
                 playerx++;
                 screen->at(playery).replace(playerx, 1, "?");
+
+                //reprints screen
                 sm.printScreen2(screen);
             }
+            //weapon tile
             else if (screen->at(playery)[playerx+1] == 'w') {
                 screen -> at(playery) = tempString;
                 vector<string> itemGet;
+
+                //gives player weapon
                 string temp = player.getNextWeapon();
+
+                //prints what weapon was found
                 itemGet = mapText(screen, temp);
                 screen->at(playery).replace(playerx, 1, " ");
+
+                //moves character onto the space
                 playerx++;
                 screen->at(playery).replace(playerx, 1, "?");
                 sm.printScreen2(&itemGet);
                 usleep(3*microsecond);
                 sm.printScreen2(screen);
             }
+            //key tile
             else if (screen->at(playery)[playerx+1] == 'k') {
                 screen -> at(playery) = tempString;
                 vector<string> itemGet;
+                //gain key
                 keysCollected++;
                 string temp = "You found a key!";
                 itemGet = mapText(screen, temp);
@@ -1244,8 +1262,10 @@ int mapMovements::gameStart(vector<string> * screen) {
                 usleep(3*microsecond);
                 sm.printScreen2(screen);
             }
+            //Lock tile
             else if (screen->at(playery)[playerx+1] == 'L') {
                 screen -> at(playery) = tempString;
+                //if the player has keys
                 if (keysCollected > 0) {
                     vector<string> itemGet;
                     keysCollected--;
@@ -1265,6 +1285,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                     usleep(3*microsecond);
                     sm.printScreen2(screen);
                 }
+                //else prints "you dont have a key"
                 else {
                     string temp = "You dont have a key!";
                     vector<string> itemGet = mapText(screen, temp);
@@ -1274,6 +1295,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                 }
                 
             }
+            //skill scroll tile
             else if (screen->at(playery)[playerx+1] == 's'){
                 string temp = player.gainItem(11);
                 if (temp == "Inventory Full!") {
@@ -1291,6 +1313,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                 usleep(2*microsecond);
                 sm.printScreen2(screen);
             }
+            //Scroll of Seg Fault
             else if (screen->at(playery)[playerx+1] == 'S'){
                 string temp = player.gainItem(12);
                 if (temp == "Inventory Full!") {
@@ -1308,8 +1331,8 @@ int mapMovements::gameStart(vector<string> * screen) {
                 usleep(2*microsecond);
                 sm.printScreen2(screen);
             }
+            //chest tile
             else if (screen->at(playery)[playerx+1] == 'c'){
-                //string temp = player.gainItem(chestItems[currentMap][chestItemsCollected[currentMap]]);
                 int temp2 = rand() % 100;
                 string temp = "";
                 if (temp2 < 100) {
@@ -1319,7 +1342,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                     screen->at(playery).replace(playerx, 1, "?");
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen -> at(playery) = tempString;
                     screen->at(playery).replace(playerx, 1, " ");
                     playerx++;
@@ -1336,6 +1358,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                 usleep(2*microsecond);
                 sm.printScreen2(screen);
             }
+            //door tile
             else if (screen->at(playery)[playerx+1] == '#'){
                 if (connectedRooms[currentMap][2] != -1) {
                     screen -> at(playery) = tempString;
@@ -1347,6 +1370,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                 }
                 sm.printScreen2(screen);
             }
+            //Xylograth, Being of Digerence
             else if (screen ->at(playery)[playerx+1] == 'D') {
                 screen -> at(playery) = tempString;
                 stop = true;
@@ -1362,7 +1386,9 @@ int mapMovements::gameStart(vector<string> * screen) {
                 }
 
             }
+            //next floor tile
             else if (screen->at(playery)[playerx+1] == '+'){
+                //floor 1 boss fight
                 if (floor == 1) {
                     screen -> at(playery) = tempString;
                     stop = true;
@@ -1388,6 +1414,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                     playerx++;
                     
                 }
+                //floor 2 boss fight
                 if (floor == 2) {
                     screen -> at(playery) = tempString;
                     stop = true;
@@ -1413,9 +1440,8 @@ int mapMovements::gameStart(vector<string> * screen) {
                     
                 }
                 floor++;
-                //stop = true;
-                //music2.join();
                 stop=false;
+                //restarts music for the new floor
                 loop=0;
                 sm.printScreen2(screen);
             }
@@ -1425,6 +1451,7 @@ int mapMovements::gameStart(vector<string> * screen) {
             
             
         }
+        //same as above, but for left movement
         else if (input == 'a' && playerx != 0) {
             if (screen->at(playery)[playerx-1] == ' ') {
                 for (size_t i = 0; i < xcolliders[currentMap].size(); i++) {
@@ -1445,7 +1472,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 sm.printScreen2(screen);
             }
             else if (screen->at(playery)[playerx-1] == 'c'){
-                //string temp = player.gainItem(chestItems[currentMap][chestItemsCollected[currentMap]]);
                 int temp2 = rand() % 100;
                 string temp = "";
                 if (temp2 < 100) {
@@ -1454,7 +1480,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 if (temp == "Inventory Full!") {
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen->at(playery).replace(playerx, 1, " ");
                     playerx--;
                     screen->at(playery).replace(playerx, 1, "?");
@@ -1527,7 +1552,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 if (temp == "Inventory Full!") {
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen->at(playery).replace(playerx, 1, " ");
                     playerx--;
                     screen->at(playery).replace(playerx, 1, "?");
@@ -1625,14 +1649,13 @@ int mapMovements::gameStart(vector<string> * screen) {
                     
                 }
                 floor++;
-                //stop = true;
-                //music2.join();
                 stop=false;
                 loop=0;
                 sm.printScreen2(screen);
             }
             
         }
+        //same as above but for down movement
         else if (input == 's' && playery != 49) {
             if (screen->at(playery+1)[playerx] == ' ') {
                 for (size_t i = 0; i < xcolliders[currentMap].size(); i++) {
@@ -1653,7 +1676,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 sm.printScreen2(screen);
             }
             else if (screen->at(playery+1)[playerx] == 'c'){
-                //string temp = player.gainItem(chestItems[currentMap][chestItemsCollected[currentMap]]);
                 int temp2 = rand() % 100;
                 string temp = "";
                 if (temp2 < 100) {
@@ -1662,7 +1684,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 if (temp == "Inventory Full!") {
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen->at(playery).replace(playerx, 1, " ");
                     playery++;
                     screen->at(playery).replace(playerx, 1, "?");
@@ -1735,7 +1756,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 if (temp == "Inventory Full!") {
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen->at(playery).replace(playerx, 1, " ");
                     playery++;
                     screen->at(playery).replace(playerx, 1, "?");
@@ -1833,14 +1853,13 @@ int mapMovements::gameStart(vector<string> * screen) {
                     
                 }
                 floor++;
-                //stop = true;
-                //music2.join();
                 stop=false;
                 loop=0;
                 sm.printScreen2(screen);
             }
             
         }
+        //same as above, but up movement
         else if (input == 'w' && playery != 0) {
             if (screen->at(playery-1)[playerx] == ' ') {
                 for (size_t i = 0; i < xcolliders[currentMap].size(); i++) {
@@ -1855,18 +1874,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                         }
                     }
                 }
-                /*if (!isWall(screen->at(playery-1)[playerx]) && screen->at(playery-1)[playerx] != ' ') {
-                    screen->at(playery).replace(playerx, 10, " ");
-                    playery--;
-                    screen->at(playery) = "";
-                    for (int i = 0; i < 144; i++) {
-                        if (i == playerx) {
-                            screen->at(playery) += "?";
-                        }
-                        screen->at(playery) += screen->at(playery)[i];
-                    } 
-                    sm.printScreen2(screen);
-                }*/
                 
                     screen->at(playery).replace(playerx, 1, " ");
                     playery--;
@@ -1876,7 +1883,6 @@ int mapMovements::gameStart(vector<string> * screen) {
             }
             
             else if (screen->at(playery-1)[playerx] == 'c'){
-                //string temp = player.gainItem(chestItems[currentMap][chestItemsCollected[currentMap]]);
                 int temp2 = rand() % 100;
                 string temp = "";
                 if (temp2 < 100) {
@@ -1885,7 +1891,6 @@ int mapMovements::gameStart(vector<string> * screen) {
                 if (temp == "Inventory Full!") {
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen->at(playery).replace(playerx, 1, " ");
                     playery--;
                     screen->at(playery).replace(playerx, 1, "?");
@@ -1954,13 +1959,11 @@ int mapMovements::gameStart(vector<string> * screen) {
                 sm.printScreen2(screen);
             }
             else if (screen->at(playery-1)[playerx] == 's'){
-                //string temp = player.gainItem(chestItems[currentMap][chestItemsCollected[currentMap]]);
 
                 string temp = player.gainItem(11);
                 if (temp == "Inventory Full!") {
                 }
                 else {
-                    //cout <<"wrong path" << endl;
                     screen->at(playery).replace(playerx, 1, " ");
                     playery--;
                     screen->at(playery).replace(playerx, 1, "?");
@@ -2066,11 +2069,14 @@ int mapMovements::gameStart(vector<string> * screen) {
             }
             
         }
+        //inventory screen
         else if (input == 'i') {
-            
+
+            //loads inventory screen
             vector<string> inventory = maps[0];
             inventory[10] = "                                                  Inventory: [numbers to use item, q to exit]                                                   ";
 
+            //displays all 4 item slot's contents
             for (int j = 0; j<4; j++) {
                 string temp = player.getInventoryName(j);
                 if (temp == "Invalid Item") {
@@ -2104,6 +2110,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                 }
             }
             
+            //displays current HP
             string temp = "HP: ";
             temp += to_string(player.getHP());
             temp += "/";
@@ -2124,12 +2131,15 @@ int mapMovements::gameStart(vector<string> * screen) {
                 }
             }
             sm.printScreen2(&inventory);
+            //checks user input
             while (true) {
                 char input2 = getchar();
+                //q quits and returns to the map
                 if (input2 == 'q') {
                     sm.printScreen2(screen);
                     break;
                 }
+                //uses item 1, repeated code for 2, 3, and 4
                 else if (input2 == '1') {
                     int temp2 = player.getInventoryID(0);
                     string temp = player.useItem(0, 1);
@@ -2246,6 +2256,7 @@ int mapMovements::gameStart(vector<string> * screen) {
                         usleep(4*microsecond);
                         screen = &maps[100];
                     }
+                    //doesnt do anything if player attempts to use an empty slot
                     if (temp != "") {
                         vector<string> itemGet = mapText(screen, temp);
                         sm.printScreen2(&itemGet);
