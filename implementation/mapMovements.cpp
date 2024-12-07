@@ -933,7 +933,7 @@ vector<vector<string>> mapMovements::maps =
         {0},
         {0,0,0,8},
         {10, 10, 10, 0, 0, 0},
-        {10, 7, 7, 2, 0, 0, 10, 10, 3, 6, 3, 8, 7, 3, 2},
+        {5, 7, 7, 2, 0, 0, 10, 10, 3, 6, 3, 8, 7, 3, 2},
         {},
         {},
         {0},
@@ -954,7 +954,7 @@ vector<vector<string>> mapMovements::maps =
         {44},
         {5, 44, 44, 30},
         {35, 10, 30, 3, 27, 17},
-        {2, 28, 30, 21, 45, 13, 1, 13, 22, 18, 17, 1, 10, 24, 34},
+        {12, 28, 30, 21, 45, 13, 12, 13, 22, 18, 17, 12, 12, 24, 34},
         {},
         {},
         {25},
@@ -974,7 +974,7 @@ vector<vector<string>> mapMovements::maps =
         {4},
         {5,5,5,0},
         {0, 0, 0, 3, 3, 2},
-        {9, 7, 0, 0, 6, 4, 4, 1, 1, 1, 6, 1, 9, 5, 5},
+        {5, 7, 0, 0, 6, 4, 4, 1, 1, 1, 6, 1, 9, 5, 5},
         {},
         {},
         {15},
@@ -1670,6 +1670,30 @@ int mapMovements::gameStart(vector<string> * screen) {
                         }
                     }
                 }
+                /*
+                if (screen->at(playery)[playerx+1] == ' ') {
+
+                for (size_t i = 0; i < xcolliders[currentMap].size(); i++) {
+                    //check if an invisible enemy is there
+                    if (activeColliders[currentMap][i] == 1 && abs(playery - ycolliders[currentMap][i]) <= ycollidersWidth[currentMap][i] && abs(playerx+1 - xcolliders[currentMap][i]) <= xcollidersWidth[currentMap][i]) {
+                        stop = true;
+                        music2.join();
+                        activeColliders[currentMap][i] = bt.battleStart(enemyCollidersType[currentMap][i], &player);
+                        stop = false;
+                        loop = 0;
+                        if (player.isDead()) {
+                            return 0;
+                        }
+                    }
+                }
+
+                //places player in new position and increments up coordinate
+                playerx++;
+                screen->at(playery).replace(playerx, 1, "?");
+
+                //reprints screen
+                sm.printScreen2(screen);
+                */
                 screen->at(playery).replace(playerx, 1, " ");
                 playery++;
                 screen->at(playery).replace(playerx, 1, "?");
